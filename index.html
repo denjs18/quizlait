@@ -3482,6 +3482,7 @@
                             <div class="progress-stat">
                                 <div class="progress-stat-value" style="color: var(--color-danger);">${totalMistakes}</div>
                                 <div class="progress-stat-label">Erreurs à revoir</div>
+                                ${totalMistakes > 0 ? `<button onclick="app.clearAllMistakes()" style="margin-top: 8px; font-size: 11px; padding: 4px 8px; background: var(--color-danger); color: white; border: none; border-radius: 6px; cursor: pointer; opacity: 0.8;">Effacer tout</button>` : ''}
                             </div>
                         </div>
 
@@ -3683,6 +3684,16 @@
                 // Supprimer les erreurs de ce set
                 this.mistakeCards = this.mistakeCards.filter(m => m.setId !== setId);
 
+                this.saveToStorage();
+                this.renderHome();
+            },
+
+            clearAllMistakes() {
+                if (!confirm('Effacer toutes les erreurs à revoir? Cette action est irréversible.')) {
+                    return;
+                }
+
+                this.mistakeCards = [];
                 this.saveToStorage();
                 this.renderHome();
             },
