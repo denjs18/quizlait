@@ -3518,8 +3518,9 @@
                                             <div class="set-stat-label" style="font-size: 11px; color: var(--color-text-light);">Erreurs</div>
                                         </div>
                                     </div>
-                                    <div style="margin-top: 10px; font-size: 12px; color: var(--color-text-light);">
-                                        Dernière révision: ${lastStudied}
+                                    <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-size: 12px; color: var(--color-text-light);">Dernière révision: ${lastStudied}</span>
+                                        ${setStats.sessions > 0 ? `<button onclick="app.resetSetStats(${set.id})" class="btn btn-outline btn-small" style="font-size: 11px; padding: 5px 10px; opacity: 0.7;">Réinitialiser</button>` : ''}
                                     </div>
                                 </div>
                             `;
@@ -3642,7 +3643,7 @@
             },
 
             resetStats() {
-                if (!confirm('Réinitialiser toutes les statistiques? Cette action est irréversible.')) {
+                if (!confirm('Réinitialiser TOUTES les statistiques? Cette action est irréversible.')) {
                     return;
                 }
 
@@ -3652,6 +3653,36 @@
                     totalCorrectAnswers: 0,
                     sets: {}
                 };
+                this.saveToStorage();
+                this.renderHome();
+            },
+
+            resetSetStats(setId) {
+                const set = this.sets.find(s => s.id === setId);
+                if (!set) return;
+
+                if (!confirm(`Réinitialiser les statistiques de "${set.title}"?`)) {
+                    return;
+                }
+
+                // Récupérer les stats du set pour les soustraire du global
+                const setStats = this.stats.sets && this.stats.sets[setId] ? this.stats.sets[setId] : null;
+
+                if (setStats) {
+                    // Soustraire du global
+                    this.stats.totalSessions = Math.max(0, (this.stats.totalSessions || 0) - (setStats.sessions || 0));
+                    this.stats.totalQuestionsAnswered = Math.max(0, (this.stats.totalQuestionsAnswered || 0) - (setStats.questionsAnswered || 0));
+                    this.stats.totalCorrectAnswers = Math.max(0, (this.stats.totalCorrectAnswers || 0) - (setStats.correctAnswers || 0));
+                }
+
+                // Réinitialiser les stats du set
+                if (this.stats.sets) {
+                    delete this.stats.sets[setId];
+                }
+
+                // Supprimer les erreurs de ce set
+                this.mistakeCards = this.mistakeCards.filter(m => m.setId !== setId);
+
                 this.saveToStorage();
                 this.renderHome();
             },
