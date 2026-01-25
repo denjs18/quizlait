@@ -2277,7 +2277,7 @@
         </div>
 
         <!-- AUTH SCREEN -->
-        <div id="authScreen" class="screen active auth-screen">
+        <div id="authScreen" class="screen auth-screen">
             <div class="auth-container">
                 <div class="auth-header">
                     <h2>Bienvenue sur Quizlait</h2>
@@ -2316,9 +2316,11 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Mot de passe</label>
-                        <input type="password" id="registerPassword" class="form-input" placeholder="Minimum 6 caracteres">
+                        <input type="password" id="registerPassword" class="form-input"
+                            placeholder="Minimum 6 caracteres">
                     </div>
-                    <button class="btn btn-primary" style="width: 100%;" onclick="app.register()">Creer mon compte</button>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="app.register()">Creer mon
+                        compte</button>
                 </div>
             </div>
         </div>
@@ -2631,37 +2633,53 @@
     <div id="associerDifficultyModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
-                <div class="modal-title">⚔️ Choisir la difficulté</div>
+                <div class="modal-title">⚔️ Configuration Associer</div>
                 <button class="modal-close" onclick="app.closeAssocierDifficultyModal()">×</button>
             </div>
 
             <div style="padding: 20px; text-align: center;">
-                <p style="margin-bottom: 25px; color: var(--color-text-light);">Combien de vies veux-tu pour cette
-                    session ?</p>
+                <div style="margin-bottom: 20px;">
+                    <p style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">📚 Nombre de paires</p>
+                    <p style="font-size: 12px; color: var(--color-text-light); margin-bottom: 10px;">Total disponible:
+                        <strong id="associerTotalPairsAvailable">0</strong> paires
+                    </p>
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-outline associer-count-btn"
+                            onclick="app.setAssocierPairCount(5, this)">5</button>
+                        <button class="btn btn-outline associer-count-btn"
+                            onclick="app.setAssocierPairCount(10, this)">10</button>
+                        <button class="btn btn-outline associer-count-btn"
+                            onclick="app.setAssocierPairCount(20, this)">20</button>
+                        <button class="btn btn-outline associer-count-btn active"
+                            onclick="app.setAssocierPairCount(0, this)">Tout</button>
+                    </div>
+                </div>
 
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button class="btn btn-outline"
-                        style="width: 100%; border-color: var(--color-success); color: var(--color-success);"
-                        onclick="app.selectAssocierDifficulty(5)">
-                        🟢 Facile (5 cœurs)
-                    </button>
-                    <button class="btn btn-outline"
-                        style="width: 100%; border-color: var(--color-warning); color: var(--color-warning);"
-                        onclick="app.selectAssocierDifficulty(3)">
-                        🟡 Intermédiaire (3 cœurs)
-                    </button>
-                    <button class="btn btn-outline"
-                        style="width: 100%; border-color: var(--color-danger); color: var(--color-danger);"
-                        onclick="app.selectAssocierDifficulty(1)">
-                        💀 Hardcore (1 cœur)
-                    </button>
+                <div style="border-top: 1px solid var(--color-border); padding-top: 20px;">
+                    <p style="font-size: 13px; font-weight: 600; margin-bottom: 15px;">❤️ Nombre de vies</p>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="btn btn-outline"
+                            style="width: 100%; border-color: var(--color-success); color: var(--color-success);"
+                            onclick="app.selectAssocierDifficulty(5)">
+                            🟢 Facile (5 vies)
+                        </button>
+                        <button class="btn btn-outline"
+                            style="width: 100%; border-color: var(--color-warning); color: var(--color-warning);"
+                            onclick="app.selectAssocierDifficulty(3)">
+                            🟡 Intermédiaire (3 vies)
+                        </button>
+                        <button class="btn btn-outline"
+                            style="width: 100%; border-color: var(--color-danger); color: var(--color-danger);"
+                            onclick="app.selectAssocierDifficulty(1)">
+                            💀 Hardcore (1 vie)
+                        </button>
+                    </div>
 
                     <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--color-border);">
-                        <p style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">⚙️ Mode Personnalisé</p>
+                        <p style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">⚙️ Personnalisé</p>
                         <div style="display: flex; gap: 10px;">
-                            <input type="number" id="associerCustomLives" class="form-input"
-                                placeholder="Nombre de vies" min="1" max="20"
-                                style="text-align: center; font-size: 16px; flex: 1;">
+                            <input type="number" id="associerCustomLives" class="form-input" placeholder="Nb vies"
+                                min="1" max="20" style="text-align: center; font-size: 16px; flex: 1;">
                             <button class="btn btn-primary" style="padding: 0 15px;"
                                 onclick="app.selectAssocierCustomDifficulty()">Valider</button>
                         </div>
@@ -2810,6 +2828,7 @@
             associerMatched: 0,
             associerTotalPairs: 0,
             associerPairesPerManche: 5,
+            associerPairCount: 0, // 0 means all cards
             associerCurrentPaires: [],
             associerSelectedTerm: null,
             associerSelectedDef: null,
@@ -4468,11 +4487,20 @@
 
             // ========== MODE ASSOCIER (NEW) ==========
             showAssocierDifficultyModal() {
+                // Update total pairs available
+                const totalPairs = this.cardsToStudy ? this.cardsToStudy.length : 0;
+                document.getElementById('associerTotalPairsAvailable').textContent = totalPairs;
                 document.getElementById('associerDifficultyModal').classList.add('active');
             },
 
             closeAssocierDifficultyModal() {
                 document.getElementById('associerDifficultyModal').classList.remove('active');
+            },
+
+            setAssocierPairCount(count, el) {
+                this.associerPairCount = count;
+                document.querySelectorAll('.associer-count-btn').forEach(btn => btn.classList.remove('active'));
+                el.classList.add('active');
             },
 
             selectAssocierDifficulty(lives) {
@@ -4498,14 +4526,21 @@
             startAssocierGame() {
                 this.associerLives = this.associerInitialLives || 5;
                 this.associerMatched = 0;
-                this.associerTotalPairs = this.cardsToStudy.length; // Use cardsToStudy for total
+
+                // Limit cards based on selected pair count
+                let cardsPool = [...this.cardsToStudy];
+                if (this.associerPairCount && this.associerPairCount > 0 && this.associerPairCount < cardsPool.length) {
+                    cardsPool = cardsPool.slice(0, this.associerPairCount);
+                }
+
+                this.associerTotalPairs = cardsPool.length;
                 this.associerPairesPerManche = Math.min(5, this.associerTotalPairs);
                 this.associerCurrentPaires = [];
                 this.associerSelectedTerm = null;
                 this.associerSelectedDef = null;
                 this.associerErrors = 0;
                 this.associerSuccesses = 0;
-                this.associerPool = [...this.cardsToStudy];
+                this.associerPool = cardsPool;
                 this.associerMatchedInManche = 0;
 
                 this.updateLivesDisplay();
