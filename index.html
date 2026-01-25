@@ -2025,7 +2025,7 @@
         }
 
         /* ========== AUTH SCREEN ========== */
-        .auth-screen {
+        .auth-screen.active {
             min-height: calc(100vh - 200px);
             display: flex;
             align-items: center;
@@ -2652,6 +2652,16 @@
                             onclick="app.setAssocierPairCount(20, this)">20</button>
                         <button class="btn btn-outline associer-count-btn active"
                             onclick="app.setAssocierPairCount(0, this)">Tout</button>
+                    </div>
+                </div>
+
+                <div style="padding: 0 20px 20px 20px; text-align: center;">
+                    <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
+                        <input type="number" id="associerCustomPairCount" class="form-input" 
+                            placeholder="Personnalisé" min="1" 
+                            style="width: 150px; text-align: center; font-size: 16px;">
+                        <button class="btn btn-primary" onclick="app.setCustomAssocierPairCount()" 
+                            style="padding: 12px 20px;">OK</button>
                     </div>
                 </div>
 
@@ -4501,6 +4511,27 @@
                 this.associerPairCount = count;
                 document.querySelectorAll('.associer-count-btn').forEach(btn => btn.classList.remove('active'));
                 el.classList.add('active');
+                // Clear custom input when preset button is clicked
+                document.getElementById('associerCustomPairCount').value = '';
+            },
+
+            setCustomAssocierPairCount() {
+                const input = document.getElementById('associerCustomPairCount');
+                const count = parseInt(input.value);
+                const totalAvailable = this.cardsToStudy ? this.cardsToStudy.length : 0;
+
+                if (!count || count < 1) {
+                    alert('Veuillez entrer un nombre valide (minimum 1)');
+                    return;
+                }
+                if (count > totalAvailable) {
+                    alert(`Maximum ${totalAvailable} paires disponibles`);
+                    return;
+                }
+
+                this.associerPairCount = count;
+                // Deselect all preset buttons
+                document.querySelectorAll('.associer-count-btn').forEach(btn => btn.classList.remove('active'));
             },
 
             selectAssocierDifficulty(lives) {
