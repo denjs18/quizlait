@@ -2888,13 +2888,18 @@
                 this.db.ref('/').on('value', (snapshot) => {
                     const data = snapshot.val() || {};
                     this.sets = data.sets || [];
-                    this.mistakeCards = data.mistakeCards || [];
                     this.users = data.users || {};
 
-                    // Get current user's stats
-                    const userStats = this.users[user.uid]?.stats;
-                    if (userStats) {
-                        this.stats = userStats;
+                    // Get current user's data (stats AND mistakeCards)
+                    const userData = this.users[user.uid];
+                    if (userData) {
+                        this.stats = userData.stats || {
+                            totalSessions: 0,
+                            totalQuestionsAnswered: 0,
+                            totalCorrectAnswers: 0,
+                            sets: {}
+                        };
+                        this.mistakeCards = userData.mistakeCards || [];
                     } else {
                         this.stats = {
                             totalSessions: 0,
@@ -2902,6 +2907,7 @@
                             totalCorrectAnswers: 0,
                             sets: {}
                         };
+                        this.mistakeCards = [];
                     }
 
                     if (data.reminder) {
@@ -3154,27 +3160,17 @@
             },
 
             saveToStorage() {
-                // Save shared data (sets, mistakeCards, reminder)
-                const sharedData = {
-                    sets: this.sets,
-                    mistakeCards: this.mistakeCards,
-                    reminder: {
-                        enabled: this.reminderEnabled,
-                        times: this.reminderTimes
-                    }
-                };
-
-                // Update shared data
+                // Update shared data (sets, reminder)
                 this.db.ref('/sets').set(this.sets);
-                this.db.ref('/mistakeCards').set(this.mistakeCards);
                 this.db.ref('/reminder').set({
                     enabled: this.reminderEnabled,
                     times: this.reminderTimes
                 });
 
-                // Save user-specific stats
+                // Save user-specific data (stats AND mistakeCards)
                 if (this.currentUser) {
                     this.db.ref(`users/${this.currentUser.uid}/stats`).set(this.stats);
+                    this.db.ref(`users/${this.currentUser.uid}/mistakeCards`).set(this.mistakeCards);
                 }
             },
 
